@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meat Rush: Wolf Runner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background-color: #a2d2ff; }
+    canvas { display: block; background: linear-gradient(to bottom, #88c, #fff); }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let wolf = { x: 50, y: 300, width: 50, height: 50, vy: 0, gravity: 0.8, jumpPower: -12, grounded: true };
+    let meat = [];
+    let score = 0;
+    let gameSpeed = 4;
+
+    function drawWolf() {
+      ctx.fillStyle = "gray";
+      ctx.fillRect(wolf.x, wolf.y, wolf.width, wolf.height);
+    }
+
+    function drawMeat() {
+      ctx.fillStyle = "red";
+      meat.forEach(m => {
+        ctx.fillRect(m.x, m.y, m.width, m.height);
+      });
+    }
+
+    function updateMeat() {
+      meat.forEach(m => m.x -= gameSpeed);
+      meat = meat.filter(m => m.x + m.width > 0);
+
+      // Spawn new meat
+      if (Math.random() < 0.02) {
+        meat.push({ x: 800, y: 320, width: 20, height: 20 });
+      }
+
+      // Check for collection
+      meat.forEach((m, index) => {
+        if (wolf.x < m.x + m.width && wolf.x + wolf.width > m.x &&
+            wolf.y < m.y + m.height && wolf.y + wolf.height > m.y) {
+          score += 10;
+          meat.splice(index, 1);
+        }
+      });
+    }
+
+    function drawGround() {
+      ctx.fillStyle = "green";
+      ctx.fillRect(0, 350, 800, 50);
+    }
+
+    function jump() {
+      if (wolf.grounded) {
+        wolf.vy = wolf.jumpPower;
+        wolf.grounded = false;
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") jump();
+    });
+
+    function updateWolf() {
+      wolf.vy += wolf.gravity;
+      wolf.y += wolf.vy;
+
+      if (wolf.y >= 300) {
+        wolf.y = 300;
+        wolf.vy = 0;
+        wolf.grounded = true;
+      }
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "black";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 10, 30);
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGround();
+      updateWolf();
+      drawWolf();
+      updateMeat();
+      drawMeat();
+      drawScore();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
